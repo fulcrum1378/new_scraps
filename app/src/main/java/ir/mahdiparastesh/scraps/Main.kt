@@ -1,91 +1,54 @@
-package org.ifaco.scraps
+package ir.mahdiparastesh.scraps
 
-import android.animation.*
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.os.*
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.os.CountDownTimer
+import android.os.Process
+import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
-import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
-import com.blure.complexview.ComplexView
-import org.ifaco.scraps.Fun.Companion.c
-import org.ifaco.scraps.Fun.Companion.dm
-import org.ifaco.scraps.Fun.Companion.dp
-import org.ifaco.scraps.Fun.Companion.fromDeg
-import org.ifaco.scraps.Fun.Companion.toDeg
-import org.ifaco.scraps.Fun.Companion.vis
+import ir.mahdiparastesh.scraps.Fun.Companion.dp
+import ir.mahdiparastesh.scraps.Fun.Companion.fromDeg
+import ir.mahdiparastesh.scraps.Fun.Companion.toDeg
+import ir.mahdiparastesh.scraps.Fun.Companion.vis
+import ir.mahdiparastesh.scraps.databinding.MenuBinding
 import kotlin.math.*
 
-class Menu : AppCompatActivity() {
-    lateinit var body: ConstraintLayout
-    lateinit var firstSlide: ConstraintLayout
-    lateinit var stars: ConstraintLayout
-    lateinit var play: ComplexView
-    lateinit var playBG: ConstraintLayout
-    lateinit var playMark: ImageView
-    lateinit var energy1: View
-    lateinit var energy2: View
-    lateinit var secondSlide: ConstraintLayout
-    lateinit var projects: RecyclerView
-
+class Main : AppCompatActivity() {
+    lateinit var b: MenuBinding
+    lateinit var c: Context
+    val dm: DisplayMetrics by lazy { resources.displayMetrics }
     var loaded = false
-    var slide = 0
-    var tapToExit = false
-    var projAdap: ProjAdap? = null
-    var sliding = false
-
-    companion object {
-        lateinit var navHandler: Handler
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.menu)
-
-        body = findViewById(R.id.body)
-        firstSlide = findViewById(R.id.firstSlide)
-        stars = findViewById(R.id.stars)
-        play = findViewById(R.id.play)
-        playBG = findViewById(R.id.playBG)
-        playMark = findViewById(R.id.playMark)
-        energy1 = findViewById(R.id.energy1)
-        energy2 = findViewById(R.id.energy2)
-        secondSlide = findViewById(R.id.secondSlide)
-        projects = findViewById(R.id.projects)
-
-        Fun.init(this)
-
-
-        // Handlers
-        navHandler = object : Handler(Looper.getMainLooper()) {
-            override fun handleMessage(msg: Message) {
-                if (msg.obj !is Project) return
-                val p = msg.obj as Project
-                startActivity(Intent(c, p.jClass))
-            }
-        }
+        b = MenuBinding.inflate(layoutInflater)
+        setContentView(b.root)
+        c = applicationContext
 
         // Play Button
-        playBG.setOnClickListener {
-            Fun.explode(c, play, 0.15f)
+        b.playBG.setOnClickListener {
+            Fun.explode(c, b.play, 0.15f)
             slide(1)
         }
         if (!loaded) AnimatorSet().apply {
             duration = 2000
             playTogether(
-                ObjectAnimator.ofFloat(play, "scaleX", 1f),
-                ObjectAnimator.ofFloat(play, "scaleY", 1f),
-                ObjectAnimator.ofFloat(play, "rotation", 0f)
+                ObjectAnimator.ofFloat(b.play, "scaleX", 1f),
+                ObjectAnimator.ofFloat(b.play, "scaleY", 1f),
+                ObjectAnimator.ofFloat(b.play, "rotation", 0f)
             )
             interpolator = DecelerateInterpolator()
             addListener(object : AnimatorListenerAdapter() {
@@ -98,13 +61,13 @@ class Menu : AppCompatActivity() {
             object : CountDownTimer(delay, delay) {
                 override fun onTick(p0: Long) {}
                 override fun onFinish() {
-                    Fun.explode(c, play, 0.3f, 1500, 8f)
+                    Fun.explode(c, b.play, 0.3f, 1500, 8f)
                 }
             }.start()
         } else {
-            play.scaleX = 1f
-            play.scaleY = 1f
-            play.rotation = 0f
+            b.play.scaleX = 1f
+            b.play.scaleY = 1f
+            b.play.rotation = 0f
         }
 
         // Energy Animations
@@ -115,35 +78,25 @@ class Menu : AppCompatActivity() {
         val caAlpha1 = Color.argb(92, Color.red(ca), Color.green(ca), Color.blue(ca))
         egd.colors = intArrayOf(ca, ca, caAlpha1, Color.TRANSPARENT)
         egd.gradientRadius = dm.density * 10f
-        energy1.background = egd
-        energy2.background = egd
-        //whirl(energy1)
-        //whirl(energy2, true)
-        vis(energy1, false)
-        vis(energy2, false)
+        b.energy1.background = egd
+        b.energy2.background = egd
+        vis(b.energy1, false)
+        vis(b.energy2, false)
 
         // Bouncers
         val bouncersNum = (dm.widthPixels.toFloat() * dm.heightPixels.toFloat() / 50000f).toInt()
         for (z in 0 until bouncersNum) {
-            var bouncer = bouncer(c)
-            stars.addView(bouncer)
+            val bouncer = bouncer(c)
+            b.stars.addView(bouncer)
             bounce(bouncer, (0..360).random().toFloat())//Random.nextInt(360).toFloat()
         }
 
         // Second Slide
-        secondSlide.translationY = dm.heightPixels.toFloat()
-        secondSlide.setOnClickListener { }
-        projAdap = ProjAdap(
-            c, listOf(
-                Project("My Wi-Fi", "2020.10.31", org.ifaco.scraps.proj.MyWiFi::class.java)
-            )
-        )
-        projects.adapter = projAdap
-
-        //startActivity(Intent(c, org.ifaco.scraps.proj.MyWiFi::class.java))
+        b.secondSlide.translationY = dm.heightPixels.toFloat()
+        b.secondSlide.setOnClickListener { }
     }
 
-    override fun onSaveInstanceState(state: Bundle) {// With "outPersistentState" doesn't work!
+    override fun onSaveInstanceState(state: Bundle) { // With "outPersistentState" doesn't work!
         state.putBoolean("loaded", loaded)
         super.onSaveInstanceState(state)
     }
@@ -153,6 +106,7 @@ class Menu : AppCompatActivity() {
         restoration(savedInstanceState)
     }
 
+    var tapToExit = false
     override fun onBackPressed() {
         if (slide == 1) {
             slide(0); return; }
@@ -172,14 +126,14 @@ class Menu : AppCompatActivity() {
     }
 
 
-    fun restoration(state: Bundle?) {
+    private fun restoration(state: Bundle?) {
         if (state == null) return
         loaded = state.getBoolean("loaded", false)
     }
 
-    fun bouncer(c: Context) = View(c).apply {
+    private fun bouncer(c: Context) = View(c).apply {
         layoutParams = ConstraintLayout.LayoutParams(dp(15), dp(15)).apply {
-            var par = ConstraintLayout.LayoutParams.PARENT_ID
+            val par = ConstraintLayout.LayoutParams.PARENT_ID
             topToTop = par
             leftToLeft = par
             rightToRight = par
@@ -201,11 +155,11 @@ class Menu : AppCompatActivity() {
         val halfSH = dm.heightPixels / 2
         var tX = v.translationX
         var tY = v.translationY
-        var adjacent: Float
-        var opposite: Float
-        var hypotenuse: Float
-        var angleC: Float
-        var nextDeg: Float
+        val adjacent: Float
+        val opposite: Float
+        val hypotenuse: Float
+        val angleC: Float
+        val nextDeg: Float
         val trbl = floatArrayOf(
             abs(-halfSH - tY) - (v.layoutParams.height / 2f),
             abs(halfSW - tX) - (v.layoutParams.width / 2f),
@@ -313,33 +267,36 @@ class Menu : AppCompatActivity() {
         }
     }
 
-    fun sep(b: Float, c: Float) = sqrt(
+    private fun sep(b: Float, c: Float) = sqrt(
         (b.toDouble().pow(2.0) + c.toDouble().pow(2.0)) - ((2f * b * c) * cos(toDeg(90f)))
     ).toFloat()
 
-    fun aSine(x: Float) = fromDeg(asin(x)).toFloat()
+    private fun aSine(x: Float) = fromDeg(asin(x)).toFloat()
 
-    fun otherAng(a: Float) = 180f - 90f - a
+    private fun otherAng(a: Float) = 180f - 90f - a
 
-    fun slide(i: Int) {
+
+    private var slide = 0
+    private var sliding = false
+    private fun slide(i: Int) {
         if (slide == i || sliding) return
         sliding = true
         AnimatorSet().apply {
             duration = 650
             playTogether(
-                ObjectAnimator.ofFloat(firstSlide, "scaleX", if (i == 0) 1f else 0.8f),
-                ObjectAnimator.ofFloat(firstSlide, "scaleY", if (i == 0) 1f else 0.8f),
+                ObjectAnimator.ofFloat(b.firstSlide, "scaleX", if (i == 0) 1f else 0.8f),
+                ObjectAnimator.ofFloat(b.firstSlide, "scaleY", if (i == 0) 1f else 0.8f),
                 ObjectAnimator.ofFloat(
-                    secondSlide, "translationY", if (i == 1) 0f else dm.heightPixels.toFloat()
+                    b.secondSlide, "translationY", if (i == 1) 0f else dm.heightPixels.toFloat()
                 )
             )
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator?) {
-                    if (i == 1) vis(secondSlide)
+                    if (i == 1) vis(b.secondSlide)
                 }
 
                 override fun onAnimationEnd(animation: Animator?) {
-                    if (i == 0) vis(secondSlide, false)
+                    if (i == 0) vis(b.secondSlide, false)
                     sliding = false
                 }
             })
@@ -347,7 +304,4 @@ class Menu : AppCompatActivity() {
         }
         slide = i
     }
-
-
-    data class Project(val name: String, val startDate: String, val jClass: Class<*>)
 }
