@@ -37,11 +37,11 @@ class Fun {
             parent.addView(ex, parent.indexOfChild(v), exLP)
 
             val explode = AnimatorSet().setDuration(dur)
-            val hide = ObjectAnimator.ofFloat(ex, "alpha", 0f)
+            val hide = ObjectAnimator.ofFloat(ex, View.ALPHA, 0f)
             hide.startDelay = explode.duration / 4
             explode.playTogether(
-                ObjectAnimator.ofFloat(ex, "scaleX", ex.scaleX * max),
-                ObjectAnimator.ofFloat(ex, "scaleY", ex.scaleY * max),
+                ObjectAnimator.ofFloat(ex, View.SCALE_X, ex.scaleX * max),
+                ObjectAnimator.ofFloat(ex, View.SCALE_Y, ex.scaleY * max),
                 hide
             )
             explode.addListener(object : AnimatorListenerAdapter() {

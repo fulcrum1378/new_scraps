@@ -1,12 +1,12 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Scraps" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/CP</item>
         <item name="colorPrimaryDark">@color/CP</item>
         <item name="colorAccent">@color/CA</item>
         <item name="android:windowBackground">@color/CP</item>
-        <item name="android:navigationBarColor" tools:ignore="NewApi">@color/CP</item>
-        <item name="android:windowLightNavigationBar" tools:ignore="NewApi">false</item>
+        <item name="android:navigationBarColor">@color/CP</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
     <style name="parentConstraint">

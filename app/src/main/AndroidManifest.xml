@@ -9,7 +9,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/launcher"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/Scraps"
         tools:ignore="DataExtractionRules">
 
         <activity

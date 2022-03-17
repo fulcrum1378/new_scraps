@@ -17,36 +17,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <com.blure.complexview.ComplexView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/play"
             style="@style/parentConstraint"
-            android:layout_width="183dp"
-            android:layout_height="183dp"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:background="@drawable/button_play_1"
+            android:elevation="10dp"
             android:rotation="-540"
             android:scaleX="0"
-            android:scaleY="0"
-            app:radius="80dp"
-            app:shadow="true"
-            app:shadowAlpha="83"
-            app:shadowColor="#000000"
-            app:shadowSpread="3">
+            android:scaleY="0">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/playBG"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/button_play_1">
-
-                <ImageView
-                    android:id="@+id/playMark"
-                    style="@style/parentConstraint"
-                    android:layout_width="42dp"
-                    android:layout_height="84dp"
-                    android:scaleY="0.666"
-                    android:src="@drawable/button_play_mark_1"
-                    app:layout_constraintHorizontal_bias="0.54" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </com.blure.complexview.ComplexView>
+            <ImageView
+                android:id="@+id/playMark"
+                style="@style/parentConstraint"
+                android:layout_width="42dp"
+                android:layout_height="84dp"
+                android:scaleY="0.666"
+                android:src="@drawable/button_play_mark_1"
+                app:layout_constraintHorizontal_bias="0.55" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
             android:id="@+id/energy1"

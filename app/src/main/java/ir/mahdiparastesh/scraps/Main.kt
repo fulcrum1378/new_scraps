@@ -1,9 +1,6 @@
 package ir.mahdiparastesh.scraps
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.animation.*
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -13,10 +10,9 @@ import android.os.Process
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import ir.mahdiparastesh.scraps.Fun.Companion.dp
@@ -26,11 +22,21 @@ import ir.mahdiparastesh.scraps.Fun.Companion.vis
 import ir.mahdiparastesh.scraps.databinding.MenuBinding
 import kotlin.math.*
 
-class Main : AppCompatActivity() {
+class Main : ComponentActivity() {
     lateinit var b: MenuBinding
     lateinit var c: Context
     val dm: DisplayMetrics by lazy { resources.displayMetrics }
-    var loaded = false
+    private var loaded = false
+
+    @Suppress("MemberVisibilityCanBePrivate", "unused")
+    companion object {
+        const val INTENSITY_HIGH = 25000f
+        const val INTENSITY_MEDIUM = 60000f
+        const val INTENSITY_LOW = 200000f
+        const val INTENSITY_ONE = -1f
+        const val WHICH = INTENSITY_MEDIUM
+        const val SPEED_FACTOR = 0.4f // the higher the slower
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,29 +45,35 @@ class Main : AppCompatActivity() {
         c = applicationContext
 
         // Play Button
-        b.playBG.setOnClickListener {
+        b.play.setOnClickListener {
             Fun.explode(c, b.play, 0.15f)
             slide(1)
         }
-        if (!loaded) AnimatorSet().apply {
-            duration = 2000
-            playTogether(
-                ObjectAnimator.ofFloat(b.play, "scaleX", 1f),
-                ObjectAnimator.ofFloat(b.play, "scaleY", 1f),
-                ObjectAnimator.ofFloat(b.play, "rotation", 0f)
-            )
-            interpolator = DecelerateInterpolator()
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+        if (!loaded) b.play.animate().apply {
+            duration = 2000L
+            scaleX(1f)
+            scaleY(1f)
+            rotation(0f)
+            setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {}
+                override fun onAnimationCancel(animation: Animator) {}
+                override fun onAnimationRepeat(animation: Animator) {}
+                override fun onAnimationEnd(animation: Animator) {
                     loaded = true
                 }
             })
             start()
-            val delay = duration / 2
+            val delay = duration / 2L
             object : CountDownTimer(delay, delay) {
                 override fun onTick(p0: Long) {}
                 override fun onFinish() {
                     Fun.explode(c, b.play, 0.3f, 1500, 8f)
+                    ObjectAnimator.ofFloat(b.play, View.TRANSLATION_Z, 0f, 30f).apply {
+                        duration = 1000L
+                        repeatMode = ValueAnimator.REVERSE
+                        repeatCount = ValueAnimator.INFINITE
+                        start()
+                    }
                 }
             }.start()
         } else {
@@ -84,11 +96,12 @@ class Main : AppCompatActivity() {
         vis(b.energy2, false)
 
         // Bouncers
-        val bouncersNum = (dm.widthPixels.toFloat() * dm.heightPixels.toFloat() / 50000f).toInt()
+        val bouncersNum = if (WHICH == INTENSITY_ONE) 1 else
+            (dm.widthPixels.toFloat() * dm.heightPixels.toFloat() / WHICH).toInt()
         for (z in 0 until bouncersNum) {
             val bouncer = bouncer(c)
             b.stars.addView(bouncer)
-            bounce(bouncer, (0..360).random().toFloat())//Random.nextInt(360).toFloat()
+            bounce(bouncer, (0..360).random().toFloat())
         }
 
         // Second Slide
@@ -122,7 +135,7 @@ class Main : AppCompatActivity() {
         }
         moveTaskToBack(true)
         Process.killProcess(Process.myPid())
-        kotlin.system.exitProcess(1)
+        kotlin.system.exitProcess(0)
     }
 
 
@@ -150,7 +163,7 @@ class Main : AppCompatActivity() {
         alpha = 0.5f
     }
 
-    fun bounce(v: View, d: Float) {
+    fun bounce(v: View, d: Float) { // TODO: SOME CALCULATIONS ARE WRONG
         val halfSW = dm.widthPixels / 2
         val halfSH = dm.heightPixels / 2
         var tX = v.translationX
@@ -252,11 +265,11 @@ class Main : AppCompatActivity() {
         hypotenuse = (adjacent * sin(toDeg(90f)).toFloat()) / sin(toDeg(angleC)).toFloat()
 
         AnimatorSet().apply {
-            duration = (hypotenuse * 0.25f).toLong()
-            interpolator = LinearInterpolator()////////
+            duration = (hypotenuse * SPEED_FACTOR).toLong()
+            interpolator = LinearInterpolator()
             playTogether(
-                ObjectAnimator.ofFloat(v, "translationX", tX),
-                ObjectAnimator.ofFloat(v, "translationY", tY)
+                ObjectAnimator.ofFloat(v, View.TRANSLATION_X, tX),
+                ObjectAnimator.ofFloat(v, View.TRANSLATION_Y, tY)
             )
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
@@ -284,10 +297,10 @@ class Main : AppCompatActivity() {
         AnimatorSet().apply {
             duration = 650
             playTogether(
-                ObjectAnimator.ofFloat(b.firstSlide, "scaleX", if (i == 0) 1f else 0.8f),
-                ObjectAnimator.ofFloat(b.firstSlide, "scaleY", if (i == 0) 1f else 0.8f),
+                ObjectAnimator.ofFloat(b.firstSlide, View.SCALE_X, if (i == 0) 1f else 0.8f),
+                ObjectAnimator.ofFloat(b.firstSlide, View.SCALE_Y, if (i == 0) 1f else 0.8f),
                 ObjectAnimator.ofFloat(
-                    b.secondSlide, "translationY", if (i == 1) 0f else dm.heightPixels.toFloat()
+                    b.secondSlide, View.TRANSLATION_Y, if (i == 1) 0f else dm.heightPixels.toFloat()
                 )
             )
             addListener(object : AnimatorListenerAdapter() {
